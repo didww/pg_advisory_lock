@@ -2,6 +2,7 @@
 
 require 'active_support/logger'
 require 'pg_sql_caller'
+require 'active_support/core_ext/string/inflections'
 
 module PgAdvisoryLock
   class Base
@@ -10,7 +11,7 @@ module PgAdvisoryLock
     # Allows to use mutex in applications that uses same database.
 
     class_attribute :logger, instance_writer: false, default: ActiveSupport::Logger.new(STDOUT)
-    class_attribute :_sql_caller_class, instance_writer: false, default: PgSqlCaller::Base
+    class_attribute :_sql_caller_class, instance_writer: false, default: 'PgSqlCaller::Base'
     class_attribute :_lock_names, instance_writer: false, default: {}
 
     class << self
@@ -86,11 +87,11 @@ module PgAdvisoryLock
     end
 
     def transaction_lock(lock_number)
-      raise ArgumentError, 'block required when not within transaction' if !block_given? && !_sql_caller_class.transaction_open?
+      raise ArgumentError, 'block required when not within transaction' if !block_given? && !sql_caller_class.transaction_open?
 
       return perform_lock(lock_number) unless block_given?
 
-      _sql_caller_class.transaction do
+      sql_caller_class.transaction do
         perform_lock(lock_number)
         yield
       end
@@ -110,11 +111,11 @@ module PgAdvisoryLock
     def perform_lock(lock_number)
       function_name = "pg_advisory#{'_xact' if transaction}_lock#{'_shared' if shared}"
 
-      _sql_caller_class.execute("SELECT #{function_name}(#{lock_number})")
+      sql_caller_class.execute("SELECT #{function_name}(#{lock_number})")
     end
 
     def perform_unlock(lock_number)
-      _sql_caller_class.select_value("SELECT pg_advisory_unlock#{'_shared' if shared}(#{lock_number})")
+      sql_caller_class.select_value("SELECT pg_advisory_unlock#{'_shared' if shared}(#{lock_number})")
     end
 
     # Converts lock name to number, because pg advisory lock functions accept only bigint numbers.
@@ -128,6 +129,12 @@ module PgAdvisoryLock
       raise ArgumentError, "can't use lock name #{name.inspect} with id" if lock_number.size > 2
 
       lock_number.join(', ')
+    end
+
+    def sql_caller_class
+      return @sql_caller_class if defined?(@sql_caller_class)
+
+      @sql_caller_class = _sql_caller_class.is_a?(String) ? _sql_caller_class.constantize : _sql_caller_class
     end
   end
 end
