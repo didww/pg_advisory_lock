@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Postgresql Advisory Lock for ActiveRecord'
   spec.description   = 'Postgresql Advisory Lock for ActiveRecord.'
-  spec.homepage      = 'https://github.com/senid231/pg_advisory_lock'
+  spec.homepage      = 'https://github.com/didww/pg_advisory_lock'
   spec.license       = 'MIT'
   spec.required_ruby_version = Gem::Requirement.new('>= 2.3.0')
 
