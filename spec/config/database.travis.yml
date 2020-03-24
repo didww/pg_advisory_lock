@@ -1,0 +1,3 @@
+test:
+  adapter: postgresql
+  database: pg_advisory_lock_test
