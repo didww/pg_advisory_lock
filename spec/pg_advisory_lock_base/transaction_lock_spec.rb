@@ -16,7 +16,7 @@ RSpec.describe PgAdvisoryLock::Base do
         expect(within_transaction?).to eq(true)
       end
 
-      PgAdvisoryLock::Base.with_lock(:test1, transaction: true) do
+      PgAdvisoryLock::Base.with_lock(:test1) do
         expect(PgSqlCaller::Base.transaction_open?).to eq(true)
       end
 
@@ -31,7 +31,7 @@ RSpec.describe PgAdvisoryLock::Base do
         expect(within_transaction?).to eq(true)
       end
 
-      PgAdvisoryLock::Base.with_lock(:test1, shared: true, transaction: true) do
+      PgAdvisoryLock::Base.with_lock(:test1, shared: true) do
         expect(PgSqlCaller::Base.transaction_open?).to eq(true)
       end
 
@@ -46,7 +46,7 @@ RSpec.describe PgAdvisoryLock::Base do
         expect(within_transaction?).to eq(true)
       end
 
-      PgAdvisoryLock::Base.with_lock(:test2, transaction: true) do
+      PgAdvisoryLock::Base.with_lock(:test2) do
         expect(PgSqlCaller::Base.transaction_open?).to eq(true)
       end
 
@@ -61,7 +61,7 @@ RSpec.describe PgAdvisoryLock::Base do
         expect(within_transaction?).to eq(true)
       end
 
-      PgAdvisoryLock::Base.with_lock(:test1, id: 123, transaction: true) do
+      PgAdvisoryLock::Base.with_lock(:test1, id: 123) do
         expect(PgSqlCaller::Base.transaction_open?).to eq(true)
       end
 

@@ -40,7 +40,7 @@ module PgAdvisoryLock
       #   block must be passed if transaction argument is false.
       # @raise [ArgumentError] when lock name is invalid.
       # @return yield
-      def with_lock(name, transaction: false, shared: false, id: nil, &block)
+      def with_lock(name, transaction: true, shared: false, id: nil, &block)
         new(name, transaction: transaction, shared: shared, id: id).lock(&block)
       end
     end
