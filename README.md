@@ -24,8 +24,6 @@ Or install it yourself as:
 create subclass from `PgAdvisoryLock::Base` and define `model_class` for it
 
 ```ruby
-require 'pg_sql_caller'
-
 class MySqlCaller < PgAdvisoryLock::Base
   model_class 'ApplicationRecord'
 end
