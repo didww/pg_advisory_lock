@@ -1,6 +1,7 @@
 # PgAdvisoryLock
 
 ![tests](https://github.com/didww/pg_advisory_lock/actions/workflows/tests.yml/badge.svg)
+[![Gem Version](https://badge.fury.io/rb/pg_advisory_lock.svg)](https://badge.fury.io/rb/pg_advisory_lock)
 
 
 Postgresql Advisory Lock for ActiveRecord.
