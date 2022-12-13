@@ -136,7 +136,7 @@ module PgAdvisoryLock
         sql_caller_class.execute("SELECT #{function_name}(#{lock_number})")
       else
         result = sql_caller_class.select_value("SELECT #{function_name}(#{lock_number})")
-        raise LockNotObtained, "#{self.class} can't obtain lock (#{name}, #{id})" unless result
+        raise LockNotObtained, "#{self.class} can't obtain lock (#{name}, #{id.inspect})" unless result
       end
     end
 
