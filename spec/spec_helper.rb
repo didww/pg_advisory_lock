@@ -7,10 +7,16 @@ require 'database_cleaner'
 require_relative 'fixtures/active_record'
 require_relative 'support/test_helper'
 
-PgSqlCaller::Base.model_class 'ApplicationRecord'
-PgAdvisoryLock::Base.logger = ActiveRecord::Base.logger
-PgAdvisoryLock::Base.register_lock :test1, 1_000
-PgAdvisoryLock::Base.register_lock :test2, [1_001, 1_002]
+class TestSqlCaller < PgSqlCaller::Base
+  model_class 'ApplicationRecord'
+end
+
+class TestAdvisoryLock < PgAdvisoryLock::Base
+  self.logger = ActiveRecord::Base.logger
+  sql_caller_class 'TestSqlCaller'
+  register_lock :test1, 1_000
+  register_lock :test2, [1_001, 1_002]
+end
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

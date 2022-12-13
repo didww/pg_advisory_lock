@@ -8,7 +8,7 @@ module TestHelper
   # After call #within_transaction? will be true inside PgSqlCaller::Base.transaction block during test.
   def spy_transaction!
     @within_transaction = nil
-    allow(PgSqlCaller::Base).to receive(:transaction).and_wrap_original do |meth, *args, &block|
+    allow(TestSqlCaller).to receive(:transaction).and_wrap_original do |meth, *args, &block|
       @within_transaction = true
       meth.call(*args, &block)
     ensure

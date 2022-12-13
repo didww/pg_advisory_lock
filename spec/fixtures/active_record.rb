@@ -2,10 +2,13 @@
 
 require 'yaml'
 require 'active_support/logger'
+require 'active_support/configuration_file'
 require 'active_record'
 
-config = YAML.load_file('spec/config/database.yml')
-ActiveRecord::Base.establish_connection config['test']
+database_config_path = 'spec/config/database.yml'
+database_config = ActiveSupport::ConfigurationFile.parse(database_config_path)
+puts "#{database_config_path}:\n#{database_config.inspect}"
+ActiveRecord::Base.establish_connection database_config['test']
 
 if ENV['CI']
   ActiveRecord::Base.logger = ActiveSupport::Logger.new(STDOUT)

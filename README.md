@@ -42,7 +42,7 @@ PgAdvisoryLock::Base.select_values 'SELECT id from users WHERE parent_name = ?',
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. 
-Create `spec/config/database.yml` (look at `spec/config/database.travis.yml` for example).
+Create `spec/config/database.yml` (look at `spec/config/database.example.yml` for example).
 You need to create test database, so run `psql -c 'CREATE DATABASE pg_advisory_lock_test;'`.
 Then, run `rake spec` to run the tests. 
 You can also run `bin/console` for an interactive prompt that will allow you to experiment.
