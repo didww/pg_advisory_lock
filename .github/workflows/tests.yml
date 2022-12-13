@@ -1,0 +1,69 @@
+name: Tests
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    name: Rubocop lint
+    env:
+      RAILS_VERSION: '~> 6.0'
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+          bundler-cache: true
+      - name: Run rubocop
+        run: |
+          gem install bundler
+          bundle install
+          bundle exec rake rubocop
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby: [ '2.7', '3.0', '3.1' ]
+        rails: [ '~> 6.0', '~> 7.0' ]
+    name: Tests with Ruby ${{ matrix.ruby }} Activerecord ${{ matrix.rails }}
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_DB: postgres_db
+          POSTGRES_PORT: 5432
+          POSTGRES_USER: postgres_user
+          POSTGRES_PASSWORD: postgres_password
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      RAILS_VERSION: ${{ matrix.rails }}
+      POSTGRES_HOST: localhost
+      POSTGRES_DB: postgres_db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Run tests
+        run: |
+          gem install bundler
+          bundle install
+          cp -v spec/config/database.ci.yml spec/config/database.yml
+          bundle exec rake spec
