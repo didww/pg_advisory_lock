@@ -1,5 +1,8 @@
 # PgAdvisoryLock
 
+![tests](https://github.com/didww/pg_advisory_lock/actions/workflows/tests.yml/badge.svg)
+
+
 Postgresql Advisory Lock for ActiveRecord.
 Allows to use mutex in applications that uses same database.
 
