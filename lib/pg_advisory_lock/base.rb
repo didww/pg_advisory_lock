@@ -31,6 +31,8 @@ module PgAdvisoryLock
         self._sql_caller_class = klass
       end
 
+      # Locks specific advisory lock.
+      # If it's already locked just waits.
       # @param name [Symbol, String] - lock name (will be transformed to number).
       # @param transaction [Boolean] - if true lock will be released at the end of current transaction
       #   otherwise it will be released at the end of block.
@@ -41,7 +43,23 @@ module PgAdvisoryLock
       # @raise [ArgumentError] when lock name is invalid.
       # @return yield
       def with_lock(name, transaction: true, shared: false, id: nil, &block)
-        new(name, transaction: transaction, shared: shared, id: id).lock(&block)
+        new(name, transaction: transaction, shared: shared, id: id, wait: true).lock(&block)
+      end
+
+      # Tries to lock specific advisory lock.
+      # If it's already locked raises exception.
+      # @param name [Symbol, String] - lock name (will be transformed to number).
+      # @param transaction [Boolean] - if true lock will be released at the end of current transaction
+      #   otherwise it will be released at the end of block.
+      # @param shared [Boolean] - is lock shared or not.
+      # @param id [Integer] - number that will be used in pair with lock number to perform advisory lock.
+      # @yield - call block when lock is acquired
+      #   block must be passed if transaction argument is false.
+      # @raise [ArgumentError] when lock name is invalid.
+      # @raise [PgAdvisoryLock::LockNotObtained] when wait: false passed and lock already locked.
+      # @return yield
+      def try_lock(name, transaction: true, shared: false, id: nil, &block)
+        new(name, transaction: transaction, shared: shared, id: id, wait: false).lock(&block)
       end
     end
 
@@ -50,16 +68,19 @@ module PgAdvisoryLock
     #   otherwise it will be released at the end of block.
     # @param shared [Boolean] - is lock shared or not.
     # @param id [Integer] - number that will be used in pair with lock number to perform advisory lock.
-    def initialize(name, transaction: false, shared: false, id: nil)
+    # @param wait [Boolean] - when locked by someone else: true - wait for lock, raise PgAdvisoryLock::LockNotObtained.
+    def initialize(name, transaction:, shared:, id:, wait:)
       @name = name.to_sym
       @transaction = transaction
       @shared = shared
       @id = id
+      @wait = wait
     end
 
     # @yield - call block when lock is acquired
     #   block must be passed if transaction argument is false.
     # @raise [ArgumentError] when lock name is invalid.
+    # @raise [PgAdvisoryLock::LockNotObtained] when wait: false passed and lock already locked.
     # @return yield
     def lock(&block)
       with_logger do
@@ -70,7 +91,7 @@ module PgAdvisoryLock
 
     private
 
-    attr_reader :transaction, :shared, :name, :id
+    attr_reader :transaction, :shared, :name, :id, :wait
 
     def with_logger
       return yield if logger.nil? || !logger.respond_to?(:tagged)
@@ -109,9 +130,14 @@ module PgAdvisoryLock
     end
 
     def perform_lock(lock_number)
-      function_name = "pg_advisory#{'_xact' if transaction}_lock#{'_shared' if shared}"
+      function_name = "pg#{'_try' unless wait}_advisory#{'_xact' if transaction}_lock#{'_shared' if shared}"
 
-      sql_caller_class.execute("SELECT #{function_name}(#{lock_number})")
+      if wait
+        sql_caller_class.execute("SELECT #{function_name}(#{lock_number})")
+      else
+        result = sql_caller_class.select_value("SELECT #{function_name}(#{lock_number})")
+        raise LockNotObtained, "#{self.class} can't obtain lock (#{name}, #{id})" unless result
+      end
     end
 
     def perform_unlock(lock_number)
