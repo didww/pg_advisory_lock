@@ -69,6 +69,22 @@ RSpec.describe PgAdvisoryLock::Base do
       expect(TestSqlCaller.transaction_open?).to eq(false)
     end
 
+    it 'with number and string id' do
+      id = '192.168.0.1'
+      lock_sql = "SELECT pg_advisory_xact_lock(1000, hashtext('#{id}'))"
+      spy_method(TestSqlCaller, :execute, [any_args], times: 1) do |*args|
+        expect(args).to eq([lock_sql])
+        expect(within_transaction?).to eq(true)
+      end
+
+      TestAdvisoryLock.with_lock(:test1, id: id) do
+        expect(TestSqlCaller.transaction_open?).to eq(true)
+      end
+
+      expect(within_transaction?).to eq(false)
+      expect(TestSqlCaller.transaction_open?).to eq(false)
+    end
+
     it 'with 2 threads using #with_lock' do
       first_lock = nil
       second_lock = nil
