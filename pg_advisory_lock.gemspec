@@ -29,5 +29,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activerecord'
   spec.add_dependency 'activesupport'
-  spec.add_dependency 'pg_sql_caller'
+  spec.add_dependency 'pg_sql_caller', '>= 0.2.2'
 end

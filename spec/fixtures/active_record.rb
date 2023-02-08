@@ -4,6 +4,7 @@ require 'yaml'
 require 'active_support/logger'
 require 'active_support/configuration_file'
 require 'active_record'
+require 'fileutils'
 
 database_config_path = 'spec/config/database.yml'
 database_config = ActiveSupport::ConfigurationFile.parse(database_config_path)
